@@ -38,12 +38,35 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }){
     try {
       const raw = localStorage.getItem(USERS_KEY)
       if (raw) {
-        setUsers(JSON.parse(raw) as UserRecord[])
+        const parsed = JSON.parse(raw) as UserRecord[]
+        // Ensure demo user has up-to-date password policy (in case older localStorage has 4-digit password)
+        const demoIdx = parsed.findIndex(u => u.username === demoUser.username)
+        if (demoIdx >= 0) {
+          let changed = false
+          if (!parsed[demoIdx].password || parsed[demoIdx].password.length < 6) {
+            parsed[demoIdx].password = demoUser.password
+            changed = true
+          }
+          if (!parsed[demoIdx].university && demoUser.university) {
+            parsed[demoIdx].university = demoUser.university
+            changed = true
+          }
+          if (!parsed[demoIdx].studentId && demoUser.studentId) {
+            parsed[demoIdx].studentId = demoUser.studentId
+            changed = true
+          }
+          if (changed) {
+            try { localStorage.setItem(USERS_KEY, JSON.stringify(parsed)) } catch {}
+          }
+        }
+        setUsers(parsed)
       } else {
         const initial: UserRecord[] = [{
           id: demoUser.id,
           username: demoUser.username,
           name: demoUser.name,
+          university: demoUser.university,
+          studentId: demoUser.studentId,
           password: demoUser.password,
         }]
         localStorage.setItem(USERS_KEY, JSON.stringify(initial))
