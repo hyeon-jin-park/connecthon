@@ -68,7 +68,7 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
       description: data.description.trim(),
       images,
       condition: data.condition,
-      rating: 4,
+      rating: 0,
       isAvailable: true,
       pricePerSemester: data.pricePerSemester,
       category: data.category,

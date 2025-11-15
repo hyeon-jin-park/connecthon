@@ -113,6 +113,23 @@ export default function DonatePage(){
       setWarnOpen(true)
       return
     }
+    // Save pending donation and redirect to payment so pickup fee can be charged
+    try {
+      const pending = {
+        name,
+        description: description || 'Donated item from user.',
+        category,
+        subCategory: availableSubs.length ? subCategory : 'General',
+        pricePerSemester: Math.max(0, Math.round(price)),
+        condition,
+        imageUrl: undefined as string | undefined,
+        imageSeed: name.trim().toLowerCase().replace(/\s+/g,'-') || undefined,
+        method: 'Pickup',
+      }
+      if (preview) pending.imageUrl = preview
+      localStorage.setItem('pending_donation', JSON.stringify(pending))
+    } catch {}
+    // Go to address input first, then payment
     router.push('/donate/address')
   }
 

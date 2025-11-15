@@ -21,9 +21,12 @@ export default function PaymentPage(){
   const router = useRouter()
   const { items, total, clear } = useCart()
   const { rentProducts } = useProductStore()
+  const { addDonatedProduct } = useProductStore()
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const shipping = Number(searchParams?.get('shipping') || '0') || 0
+  const isDonation = searchParams?.get('donation') === '1'
+  const [postRedirect, setPostRedirect] = useState<string>('/home')
   const displayedTotal = total + shipping
 
   const appendUserRentals = (userId: string, ids: string[]) => {
@@ -54,13 +57,43 @@ export default function PaymentPage(){
   }
 
   const handlePay = async () => {
-    if (items.length === 0) return setOpen(true)
+    // If there are no cart items and this is not a donation, warn the user
+    if (!isDonation && items.length === 0) return setOpen(true)
+
     // mock processing
     await new Promise(r => setTimeout(r, 400))
+
+    if (isDonation) {
+      try {
+        const raw = localStorage.getItem('pending_donation')
+        if (raw) {
+          const pending = JSON.parse(raw)
+          // Ensure fields match expected input for addDonatedProduct
+          const desc = `${pending.description || ''}${pending.address ? `\nPickup address: ${pending.address} ${pending.postal || ''}` : ''}`
+          addDonatedProduct({
+            name: pending.name,
+            description: desc,
+            category: pending.category,
+            subCategory: pending.subCategory,
+            pricePerSemester: pending.pricePerSemester,
+            condition: pending.condition,
+            imageSeed: pending.imageSeed,
+            imageUrl: pending.imageUrl,
+          })
+          localStorage.removeItem('pending_donation')
+        }
+      } catch {}
+      setPostRedirect('/home')
+      setOpen(true)
+      return
+    }
+
+    // Normal cart payment flow
     const ids = items.map(ci => ci.product.id)
     rentProducts(ids)
     if (user) appendUserRentals(user.id, ids)
     clear()
+    setPostRedirect('/home')
     setOpen(true)
   }
 
@@ -101,7 +134,7 @@ export default function PaymentPage(){
         <Button onClick={handlePay}>Pay</Button>
       </div>
 
-      <Popup open={open} title="Payment completed" message="Items are now marked as rented." onClose={()=>{ setOpen(false); router.push('/home') }} />
+      <Popup open={open} title="Payment completed" message={isDonation ? 'Pickup fee paid. Please schedule pickup details.' : 'Items are now marked as rented.'} onClose={()=>{ setOpen(false); router.push(postRedirect) }} />
     </div>
   )
 }

@@ -12,6 +12,7 @@ export default function MyRentalsPage(){
   const { user } = useAuth()
   const { products, returnProducts } = useProductStore()
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string; name?: string }>({ open: false })
+  const [confirmRating, setConfirmRating] = useState<number>(5)
   const [ids, setIds] = useState<string[]>([])
   const [records, setRecords] = useState<Record<string, { rentedAt: string; dueAt: string }> | null>(null)
 
@@ -89,6 +90,24 @@ export default function MyRentalsPage(){
     } catch {}
   }
 
+  const saveRating = (id: string, rating: number) => {
+    try {
+      const raw = localStorage.getItem('product_ratings')
+      const map = raw ? (JSON.parse(raw) as Record<string, number[]>) : {}
+      const arr = map[id] ?? []
+      arr.push(rating)
+      map[id] = arr
+      localStorage.setItem('product_ratings', JSON.stringify(map))
+    } catch {}
+  }
+
+  const handleReturnWithRating = (id?: string) => {
+    if (!id) return
+    saveRating(id, confirmRating)
+    doReturn(id)
+    setConfirm({ open: false })
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="mb-4">
@@ -131,7 +150,7 @@ export default function MyRentalsPage(){
                   <div className="text-xs text-slate-400">Seller: Donation</div>
                   {!p.isAvailable && (
                     <button
-                      onClick={() => setConfirm({ open: true, id: p.id, name: p.name })}
+                      onClick={() => { setConfirm({ open: true, id: p.id, name: p.name }); setConfirmRating(5) }}
                       className="text-sm px-3 py-1 rounded bg-brand text-white"
                     >
                       Return
@@ -147,13 +166,31 @@ export default function MyRentalsPage(){
       <Popup
         open={confirm.open}
         title={`Return ${confirm.name ?? 'item'}?`}
-        message="Are you sure you want to return this item? This will make it available to others."
         onClose={() => setConfirm({ open: false })}
         actions={[
           { label: 'Cancel', tone: 'secondary', onClick: () => setConfirm({ open: false }) },
-          { label: 'Return', onClick: () => { if (confirm.id) { doReturn(confirm.id); setConfirm({ open: false }) } } },
+          { label: 'Return', onClick: () => handleReturnWithRating(confirm.id) },
         ]}
-      />
+      >
+        <div>
+          <p>Are you sure you want to return this item? This will make it available to others.</p>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="text-sm text-slate-600">Rate your experience:</div>
+            <div className="flex items-center">
+              {[1,2,3,4,5].map(i => (
+                <button
+                  key={i}
+                  onClick={() => setConfirmRating(i)}
+                  className="text-2xl leading-none"
+                  aria-label={`Rate ${i} star`}
+                >
+                  <span className={confirmRating >= i ? 'text-yellow-500' : 'text-slate-300'}>{confirmRating >= i ? '★' : '☆'}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Popup>
     </div>
   )
 }
