@@ -1,5 +1,6 @@
 "use client"
 import { useState } from 'react'
+import { isCardNumber, isExpiry, isCVC } from '@/app/_lib/formValidators'
 import { useSearchParams } from 'next/navigation'
 import Popup from '@/app/_components/ui/Popup'
 import Button from '@/app/_components/ui/Button'
@@ -27,6 +28,10 @@ export default function PaymentPage(){
   const shipping = Number(searchParams?.get('shipping') || '0') || 0
   const isDonation = searchParams?.get('donation') === '1'
   const [postRedirect, setPostRedirect] = useState<string>('/home')
+  const [cardNumber, setCardNumber] = useState('')
+  const [expiry, setExpiry] = useState('')
+  const [cvc, setCvc] = useState('')
+  const [cardError, setCardError] = useState<string | null>(null)
   const displayedTotal = total + shipping
 
   const appendUserRentals = (userId: string, ids: string[]) => {
@@ -59,6 +64,12 @@ export default function PaymentPage(){
   const handlePay = async () => {
     // If there are no cart items and this is not a donation, warn the user
     if (!isDonation && items.length === 0) return setOpen(true)
+
+    // Validate card details (mock)
+    setCardError(null)
+    if (!isCardNumber(cardNumber)) return setCardError('Enter a valid card number (13–19 digits)')
+    if (!isExpiry(expiry)) return setCardError('Enter expiry as MM/YY')
+    if (!isCVC(cvc)) return setCardError('Enter CVC (3–4 digits)')
 
     // mock processing
     await new Promise(r => setTimeout(r, 400))
@@ -125,11 +136,12 @@ export default function PaymentPage(){
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Card Details (Mock)</label>
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Card Number" />
+          <input inputMode="numeric" pattern="\d{13,19}" required className="w-full border rounded px-3 py-2 mb-2" placeholder="Card Number" value={cardNumber} onChange={e=>setCardNumber(e.target.value)} />
           <div className="grid grid-cols-2 gap-2">
-            <input className="border rounded px-3 py-2" placeholder="MM/YY" />
-            <input className="border rounded px-3 py-2" placeholder="CVC" />
+            <input placeholder="MM/YY" required pattern="^(0[1-9]|1[0-2])\/\d{2}$" className="border rounded px-3 py-2" value={expiry} onChange={e=>setExpiry(e.target.value)} />
+            <input inputMode="numeric" pattern="\d{3,4}" required className="border rounded px-3 py-2" placeholder="CVC" value={cvc} onChange={e=>setCvc(e.target.value)} />
           </div>
+          {cardError && <p className="text-xs text-red-600 mt-2">{cardError}</p>}
         </div>
         <Button onClick={handlePay}>Pay</Button>
       </div>

@@ -22,7 +22,7 @@ export default function SearchPage(){
         <h1 className="text-xl font-semibold">Search</h1>
         <AvailableOnlyToggle value={availableOnly} onChange={setAvailableOnly} />
       </div>
-      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search items" className="w-full border rounded px-3 py-2 mb-4" />
+      <input aria-label="Search items" value={q} onChange={e=>setQ(e.target.value)} placeholder="Search items" className="w-full border rounded px-3 py-2 mb-4" />
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {results.map(p => <ProductCard key={p.id} product={p} />)}
       </div>

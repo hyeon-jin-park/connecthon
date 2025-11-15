@@ -5,6 +5,7 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import { useAuth } from '@/app/_context/AuthStore'
 import { useEffect, useState } from 'react'
+import { isNumeric } from '@/app/_lib/formValidators'
 
 const universities = [
   'Seoul National University',
@@ -45,7 +46,11 @@ export default function SignupPage(){
 
   const handleSignup = async () => {
     setError(null)
-    const res = await register({ username, password, name, university: university || undefined, studentId: studentId || undefined })
+    if (!username || username.trim().length < 3) return setError('Username must be at least 3 characters')
+    if (!password || password.length < 6) return setError('Password must be at least 6 characters')
+    if (!name || !name.trim()) return setError('Please enter your name')
+    if (studentId && !isNumeric(studentId)) return setError('Student ID must contain only numbers')
+    const res = await register({ username: username.trim(), password, name: name.trim(), university: university || undefined, studentId: studentId || undefined })
     if (res.ok) {
       router.replace('/home')
     } else {
@@ -68,10 +73,10 @@ export default function SignupPage(){
               <option key={u} value={u}>{u}</option>
             ))}
           </select>
-          <input className={styles.field} placeholder="Student ID" value={studentId} onChange={e=>setStudentId(e.target.value)} />
-          <input className={styles.field} placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
-          <input className={styles.field} placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
-          <input className={styles.field} placeholder="Name (signature)" value={name} onChange={e=>setName(e.target.value)} />
+          <input className={styles.field} placeholder="Student ID" value={studentId} onChange={e=>setStudentId(e.target.value)} inputMode="numeric" pattern="\d*" />
+          <input required minLength={3} className={styles.field} placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
+          <input required minLength={6} className={styles.field} placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
+          <input required className={styles.field} placeholder="Name (signature)" value={name} onChange={e=>setName(e.target.value)} />
           <Button onClick={handleSignup}>Create Account and Log in</Button>
           <p className={styles.hint}>By signing up you agree to our terms (mock).</p>
           <div className="text-right">

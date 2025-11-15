@@ -9,13 +9,16 @@ export default function DonatePickupAddressPage(){
   const [open, setOpen] = useState(false)
   const [address, setAddress] = useState('')
   const [postal, setPostal] = useState('')
+  const [error, setError] = useState<string | null>(null)
   return (
     <div className="max-w-lg">
       <h1 className="text-xl font-semibold mb-4">Pickup Address</h1>
       <div className="space-y-3">
         <input value={address} onChange={e=>setAddress(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Address" />
         <input value={postal} onChange={e=>setPostal(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Postal Code" />
+        {error && <p className="text-xs text-red-600">{error}</p>}
         <Button onClick={() => {
+          if (!address.trim()) return setError('Please enter pickup address')
           // attach address to pending donation and redirect to payment
           try {
             const raw = localStorage.getItem('pending_donation')

@@ -140,7 +140,7 @@ export default function DonatePage(){
         <div className="space-y-5">
           <div>
             <label className="block text-sm font-medium mb-1">Item Name</label>
-            <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Small Bookshelf" className="w-full border rounded px-3 py-2" />
+            <input required maxLength={100} value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Small Bookshelf" className="w-full border rounded px-3 py-2" />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
           </div>
           <div>
@@ -154,6 +154,14 @@ export default function DonatePage(){
                 accept="image/*"
                 onChange={e => {
                   const f = e.target.files?.[0] || null
+                  // client-side size limit 5MB
+                  if (f && f.size > 5 * 1024 * 1024) {
+                    setUploadError('File too large. Max 5MB.')
+                    setFile(null)
+                    setPreview(null)
+                    return
+                  }
+                  setUploadError(null)
                   setFile(f)
                   if (f) setPreview(URL.createObjectURL(f))
                   else setPreview(null)
@@ -228,7 +236,7 @@ export default function DonatePage(){
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Price per Semester (₩)</label>
-              <input type="number" value={Number.isFinite(price) ? price : 0} onChange={e=>setPrice(Number(e.target.value))} className="w-full border rounded px-3 py-2" min={0} step={100} />
+              <input required type="number" value={Number.isFinite(price) ? price : 0} onChange={e=>setPrice(Number(e.target.value))} className="w-full border rounded px-3 py-2" min={0} step={100} />
               {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
             </div>
           </div>

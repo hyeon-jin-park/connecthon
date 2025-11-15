@@ -19,11 +19,15 @@ export default function LoginPage(){
 
   const handleLogin = async () => {
     setError(null)
-    if (!username || !password) {
-      setError('Please enter username and password.')
+    if (!username || username.trim().length < 3) {
+      setError('Please enter a valid username (min 3 chars).')
       return
     }
-    const ok = await login(username, password)
+    if (!password || password.length < 6) {
+      setError('Please enter a password (min 6 chars).')
+      return
+    }
+    const ok = await login(username.trim(), password)
     if (ok) {
       router.replace('/home')
     } else {
@@ -40,8 +44,8 @@ export default function LoginPage(){
         <h1 className="text-xl font-semibold mb-4 text-center">Login</h1>
         <div className="space-y-3">
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <input className={styles.field} placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
-          <input className={styles.field} placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
+          <input required minLength={3} className={styles.field} placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
+          <input required minLength={6} className={styles.field} placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
           <Button onClick={handleLogin}>Login</Button>
           <div className="text-right">
             <button className="text-sm text-slate-600" onClick={()=>router.push('/signup')}>Go to Sign up</button>
