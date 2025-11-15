@@ -9,6 +9,7 @@ export type Product = {
   pricePerSemester: number
   category: 'Furniture' | 'Appliances' | 'Electronics'
   subCategory: string
+  createdAt?: number
 }
 
 export type CartItem = {

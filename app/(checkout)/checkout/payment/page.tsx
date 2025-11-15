@@ -146,7 +146,7 @@ export default function PaymentPage(){
         <Button onClick={handlePay}>Pay</Button>
       </div>
 
-      <Popup open={open} title="Payment completed" message={isDonation ? 'Pickup fee paid. Please schedule pickup details.' : 'Items are now marked as rented.'} onClose={()=>{ setOpen(false); router.push(postRedirect) }} />
+      <Popup open={open} title="Payment completed" message={isDonation ? 'Pickup fee paid. Please schedule pickup details.' : 'Payment completed — rental details will be sent to your email.'} onClose={()=>{ setOpen(false); router.push(postRedirect) }} />
     </div>
   )
 }
