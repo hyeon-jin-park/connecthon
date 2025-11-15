@@ -69,6 +69,7 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
       images,
       condition: data.condition,
       rating: 0,
+      createdAt: Date.now(),
       isAvailable: true,
       pricePerSemester: data.pricePerSemester,
       category: data.category,
@@ -89,7 +90,10 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
 
   const merged = useMemo(() => {
     const baseWithStatus = baseProducts.map(p => rentedIds.includes(p.id) ? { ...p, isAvailable: false } : p)
-    return [...baseWithStatus, ...donated]
+    // Sort by createdAt (newest first). donated items have createdAt set; base products may not (treated as 0).
+    const combined = [...donated, ...baseWithStatus]
+    combined.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    return combined
   }, [donated, rentedIds])
 
   return (
