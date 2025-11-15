@@ -31,7 +31,7 @@ export default function LoginPage(){
     if (ok) {
       router.replace('/home')
     } else {
-      setError('Invalid credentials. Try user / 1234')
+      setError('Invalid credentials. Try user / 123456')
     }
   }
   return (

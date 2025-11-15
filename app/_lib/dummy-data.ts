@@ -193,5 +193,7 @@ export const demoUser: User & { password: string } = {
   id: 'u-1',
   username: 'user',
   name: 'Demo Student',
-  password: '1234',
+  password: '123456',
+  university: 'Inha University',
+  studentId: '20231234',
 }
