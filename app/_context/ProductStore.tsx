@@ -11,6 +11,7 @@ type NewProductInput = {
   pricePerSemester: number
   condition: Product['condition']
   imageSeed?: string
+  imageUrl?: string
 }
 
 type ProductStoreValue = {
@@ -57,10 +58,9 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
     const sub = data.subCategory || (data.category === 'Electronics' ? 'General' : 'Misc')
     const imageSeed = data.imageSeed || data.name.toLowerCase().replace(/\s+/g, '-')
 
-    const images = [
-      `/images/products/${imageSeed}.jpg`,
-      `https://picsum.photos/seed/${imageSeed}/600/400`,
-    ]
+    const images = data.imageUrl
+      ? [data.imageUrl, `/images/products/${imageSeed}.jpg`]
+      : [`/images/products/${imageSeed}.jpg`, `https://picsum.photos/seed/${imageSeed}/600/400`]
 
     const newProduct: Product = {
       id,

@@ -9,6 +9,7 @@ type AuthContextValue = {
   login: (username: string, password: string) => Promise<boolean>
   logout: () => void
   register: (data: { username: string; password: string; name: string; university?: string; studentId?: string }) => Promise<{ ok: true } | { ok: false; error: string }>
+  updateProfile: (data: Partial<User>) => Promise<{ ok: true } | { ok: false; error: string }>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -93,7 +94,27 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }){
     return { ok: true }
   }
 
-  const value = useMemo<AuthContextValue>(() => ({ user, isAuthenticated: !!user, login, logout, register }), [user, users])
+  const updateProfile: AuthContextValue['updateProfile'] = async (data) => {
+    if (!user) return { ok: false, error: 'Not authenticated' }
+    const updatedUser: User = { ...user, ...data }
+    setUser(updatedUser)
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser)) } catch {}
+
+    try {
+      const list = users ?? []
+      const idx = list.findIndex(u => u.id === updatedUser.id)
+      if (idx >= 0) {
+        const updated = [...list]
+        updated[idx] = { ...updated[idx], name: updatedUser.name, university: updatedUser.university, studentId: updatedUser.studentId }
+        setUsers(updated)
+        localStorage.setItem(USERS_KEY, JSON.stringify(updated))
+      }
+    } catch {}
+
+    return { ok: true }
+  }
+
+  const value = useMemo<AuthContextValue>(() => ({ user, isAuthenticated: !!user, login, logout, register, updateProfile }), [user, users])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

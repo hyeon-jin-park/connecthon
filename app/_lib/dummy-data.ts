@@ -152,8 +152,20 @@ const allBase: BaseItem[] = [
 
 const conditions: Product['condition'][] = ['New', 'Good', 'Old']
 
-function makeImage(seed: string) {
-  return `https://picsum.photos/seed/${seed}/600/400`
+function chooseLocalImage(seed: string) {
+  const s = seed.toLowerCase()
+  if (s.includes('bed') || s.includes('mattress')) return '/mattress.png'
+  if (s.includes('sofa') || s.includes('cushion') || s.includes('throw') || s.includes('accent') || s.includes('chair')) return '/chair.png'
+  if (s.includes('desk') || s.includes('study') || s.includes('monitor') || s.includes('laptop') || s.includes('riser') || s.includes('desk-')) return '/desk.png'
+  if (s.includes('table') || s.includes('coffee') || s.includes('side') || s.includes('dining') || s.includes('bedside') || s.includes('table-')) return '/table.png'
+  if (s.includes('tv') || s.includes('stand') || s.includes('projector')) return '/tv.png'
+  if (s.includes('fan') || s.includes('fan-')) return '/fan.png'
+  if (s.includes('vacuum') || s.includes('vac') || s.includes('hand-vac') || s.includes('dehumidifier') || s.includes('cleaner')) return '/vacuum.png'
+  if (s.includes('speaker') || s.includes('bluetooth') || s.includes('audio')) return '/speaker.png'
+  if (s.includes('camera') || s.includes('webcam') || s.includes('action')) return '/camera.png'
+  if (s.includes('cable') || s.includes('usb') || s.includes('charger') || s.includes('hdmi')) return '/cable.png'
+  if (s.includes('mattress')) return '/mattress.png'
+  return '/chair.png'
 }
 
 export const products: Product[] = allBase.map((item, i) => {
@@ -161,11 +173,12 @@ export const products: Product[] = allBase.map((item, i) => {
   const rating = 3 + (i % 3) // 3–5
   const isAvailable = i % 6 !== 0 // every 6th item marked rented
   const pricePerSemester = item.basePrice
+  const img = chooseLocalImage(item.imageSeed)
   return {
     id: (i + 1).toString(),
     name: item.name,
     description: `${item.description} Ideal for exchange students seeking temporary use.`,
-    images: [makeImage(item.imageSeed), makeImage(item.imageSeed + '-alt')],
+    images: [img, '/logo.png'],
     condition,
     rating,
     isAvailable,

@@ -13,6 +13,7 @@ export default function ProfilePage(){
     .join('')
     .slice(0,2)
     .toUpperCase()
+
   return (
     <div className="max-w-xl">
       <div className="rounded-xl border bg-gradient-to-r from-emerald-50 to-white p-4 mb-4">
@@ -59,6 +60,24 @@ export default function ProfilePage(){
           </div>
         </li>
         <li>
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BuildingOfficeIcon className="w-5 h-5 text-slate-500" />
+              <span className="text-slate-700">University</span>
+            </div>
+            <span className="text-slate-600">{user?.university ?? '—'}</span>
+          </div>
+        </li>
+        <li>
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <IdentificationIcon className="w-5 h-5 text-slate-500" />
+              <span className="text-slate-700">Student ID</span>
+            </div>
+            <span className="text-slate-600">{user?.studentId ?? '—'}</span>
+          </div>
+        </li>
+        <li>
           <Link href="/profile/rentals" className="px-4 py-3 flex items-center justify-between hover:bg-slate-50">
             <div className="flex items-center gap-3">
               <ClipboardDocumentListIcon className="w-5 h-5 text-slate-500" />
@@ -66,15 +85,6 @@ export default function ProfilePage(){
             </div>
             <ChevronRightIcon className="w-5 h-5 text-slate-400" />
           </Link>
-        </li>
-        <li>
-          <button className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50">
-            <div className="flex items-center gap-3">
-              <Cog6ToothIcon className="w-5 h-5 text-slate-500" />
-              <span className="text-slate-700">Settings (Mock)</span>
-            </div>
-            <ChevronRightIcon className="w-5 h-5 text-slate-400" />
-          </button>
         </li>
         <li>
           <button className="w-full px-4 py-3 flex items-center justify-between text-red-600 hover:bg-red-50/60" onClick={()=>{ logout(); router.replace('/login') }}>

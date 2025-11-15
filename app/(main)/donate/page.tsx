@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Popup from '@/app/_components/ui/Popup'
 import Button from '@/app/_components/ui/Button'
 import { useRouter } from 'next/navigation'
@@ -7,10 +7,16 @@ import { useProductStore } from '@/app/_context/ProductStore'
 import { categories } from '@/app/_lib/dummy-data'
 
 export default function DonatePage(){
+  const PICKUP_ADDRESS = '100 Inha-ro, Michuhol-gu, Incheon 22212, Republic of Korea'
   const [method, setMethod] = useState<'Drop-off' | 'Pickup'>('Drop-off')
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [category, setCategory] = useState<'Furniture'|'Appliances'|'Electronics'>('Furniture')
   const [subCategory, setSubCategory] = useState<string>('Bedroom')
   const [price, setPrice] = useState<number>(3000)
@@ -41,16 +47,60 @@ export default function DonatePage(){
       return
     }
 
-    addDonatedProduct({
-      name,
-      description: description || 'Donated item from user.',
-      category,
-      subCategory: availableSubs.length ? subCategory : 'General',
-      pricePerSemester: Math.max(0, Math.round(price)),
-      condition,
-      imageSeed: name.trim().toLowerCase().replace(/\s+/g,'-') || undefined,
-    })
-    setOpen(true)
+    const doAdd = async () => {
+      setUploading(true)
+      setUploadProgress(0)
+      setUploadError(null)
+      try {
+        let imageUrl: string | undefined = undefined
+        if (file) {
+          // Client upload with progress using XMLHttpRequest
+          imageUrl = await new Promise<string>((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', '/api/upload')
+            xhr.upload.onprogress = (ev) => {
+              if (ev.lengthComputable) {
+                const pct = Math.round((ev.loaded / ev.total) * 100)
+                setUploadProgress(pct)
+              }
+            }
+            xhr.onload = () => {
+              try {
+                const j = JSON.parse(xhr.responseText)
+                if (xhr.status >= 200 && xhr.status < 300 && j?.url) resolve(j.url)
+                else reject(new Error(j?.error || 'Upload failed'))
+              } catch (e) {
+                reject(new Error('Invalid upload response'))
+              }
+            }
+            xhr.onerror = () => reject(new Error('Network error during upload'))
+            const fd = new FormData()
+            fd.append('file', file)
+            xhr.send(fd)
+          })
+        }
+
+        addDonatedProduct({
+          name,
+          description: description || 'Donated item from user.',
+          category,
+          subCategory: availableSubs.length ? subCategory : 'General',
+          pricePerSemester: Math.max(0, Math.round(price)),
+          condition,
+          imageSeed: name.trim().toLowerCase().replace(/\s+/g,'-') || undefined,
+          imageUrl,
+        })
+        setOpen(true)
+      } catch (err: any) {
+        setUploadError(err?.message || 'Upload failed')
+        setWarnMsg(err?.message || 'Upload failed')
+        setWarnOpen(true)
+      } finally {
+        setUploading(false)
+        setUploadProgress(0)
+      }
+    }
+    void doAdd()
   }
 
   const onPickupNext = () => {
@@ -78,8 +128,51 @@ export default function DonatePage(){
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Upload Photos</label>
-            <div className="border border-dashed rounded px-4 py-6 text-center text-slate-500 bg-slate-50">Mock Upload UI</div>
+            <div className="flex items-center gap-4">
+              <input
+                ref={useRef<HTMLInputElement | null>(null)}
+                className="hidden"
+                id="donate-file-input"
+                type="file"
+                accept="image/*"
+                onChange={e => {
+                  const f = e.target.files?.[0] || null
+                  setFile(f)
+                  if (f) setPreview(URL.createObjectURL(f))
+                  else setPreview(null)
+                }}
+              />
+              {/* Custom English choose file button to avoid localized browser button text */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="px-3 py-2 bg-slate-100 rounded border hover:bg-slate-50"
+                  onClick={() => document.getElementById('donate-file-input')?.click()}
+                  disabled={uploading}
+                >
+                  Choose file
+                </button>
+                <span className="text-sm text-slate-500">{file ? file.name : 'No file chosen'}</span>
+              </div>
+              {preview && (
+                <div className="w-24 h-24 rounded overflow-hidden border">
+                  <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Uploaded images are saved and used as the item photo.</p>
           </div>
+          {uploading && (
+            <div className="mt-2">
+              <div className="w-full bg-slate-100 rounded h-2 overflow-hidden">
+                <div className="bg-green-500 h-2" style={{ width: `${uploadProgress}%` }} />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Uploading: {uploadProgress}%</p>
+            </div>
+          )}
+          {uploadError && (
+            <p className="mt-1 text-xs text-red-600">Upload error: {uploadError}</p>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea value={description} onChange={e=>setDescription(e.target.value)} className="w-full border rounded px-3 py-2" rows={3} placeholder="Describe your item" />
@@ -132,6 +225,12 @@ export default function DonatePage(){
                 </label>
               ))}
             </div>
+            {method === 'Pickup' && (
+              <p className="mt-2 text-sm text-slate-600">Pickup service fee: <span className="font-semibold">₩3,000</span></p>
+            )}
+            {method === 'Drop-off' && (
+              <p className="mt-2 text-sm text-slate-500">Drop-off address: <span className="font-medium">{PICKUP_ADDRESS}</span></p>
+            )}
           </div>
           <div className="flex items-center justify-end gap-2 pt-2">
             {method==='Drop-off' ? (
