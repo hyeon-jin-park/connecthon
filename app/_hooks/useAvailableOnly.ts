@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 const KEY = 'available_only'
 
@@ -17,20 +16,21 @@ export function useAvailableOnly(){
       return false
     }
   })
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const pathname = usePathname()
 
-  // Persist to localStorage and reflect in URL
+  // Persist to localStorage and reflect in URL using browser history APIs.
   useEffect(() => {
     try { window.localStorage.setItem(KEY, availableOnly ? '1' : '0') } catch {}
-    if (!pathname) return
-    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : searchParams?.toString())
-    if (availableOnly) params.set('available', '1')
-    else params.delete('available')
-    const query = params.toString()
-    router.replace(query ? `${pathname}?${query}` : pathname)
-  }, [availableOnly, pathname, router])
+    try {
+      const pathname = window.location.pathname || '/'
+      const params = new URLSearchParams(window.location.search)
+      if (availableOnly) params.set('available', '1')
+      else params.delete('available')
+      const query = params.toString()
+      const newUrl = query ? `${pathname}?${query}` : pathname
+      // Use history.replaceState to avoid triggering navigation during client-side updates
+      window.history.replaceState(window.history.state, '', newUrl)
+    } catch {}
+  }, [availableOnly])
 
   return { availableOnly, setAvailableOnly }
 }
