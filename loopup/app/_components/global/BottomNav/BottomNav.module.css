@@ -1,0 +1,4 @@
+.nav{ @apply fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 md:hidden; }
+.inner{ @apply h-14 grid grid-cols-5 items-center text-xs; }
+.link{ @apply flex flex-col items-center justify-center gap-1 text-slate-600 hover:text-slate-900; }
+.active{ @apply text-brand; }

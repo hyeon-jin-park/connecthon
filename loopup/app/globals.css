@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f0fdf4; /* subtle green tint background */
+  --fg: #0f172a;
+  --brand: #16a34a;
+}
+
+html, body, #__next { height: 100%; }
+
+body {
+  color: var(--fg);
+  background: var(--bg);
+}
+
+.container {
+  @apply max-w-6xl mx-auto px-4 sm:px-6;
+}
+
+/* Utility helpers */
+.text-brand { color: theme('colors.brand.DEFAULT'); }
+.bg-brand { background-color: theme('colors.brand.DEFAULT'); }
+.bg-brand-dark { background-color: theme('colors.brand.dark'); }
+.border-brand { border-color: theme('colors.brand.DEFAULT'); }
